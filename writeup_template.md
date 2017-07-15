@@ -1,7 +1,7 @@
-**Traffic Sign Recognition** 
+# Traffic Sign Recognition
 
 
-**Building a Traffic Sign Recognition Piplne**
+## Building a Traffic Sign Recognition Pipeline
 
 The goals / steps of this project are the following:
 * Load the data set (see below for links to the project data set)
@@ -14,9 +14,9 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/data_explore.png "Visualization"
-[image2]: ./examples/hist_compare.png "Histogram Equalization"
-[image3]: ./examples/data_normalize.png "Image Normalization"
+[image1]: ./extra_signs/data_explore.png "Visualization"
+[image2]: ./extra_signs/hist_compare.png "Histogram Equalization"
+[image3]: ./extra_signs/data_normalize.png "Image Normalization"
 [image4]: ./extra_signs/30_sign.jpg "Traffic Sign 1"
 [image5]: ./extra_signs/bumpy_road_sign.jpg "Traffic Sign 2"
 [image6]: ./extra_signs/no_passing_sign.jpg "Traffic Sign 3"
@@ -24,7 +24,6 @@ The goals / steps of this project are the following:
 [image8]: ./extra_Signs/STOP_sign.jpg "Traffic Sign 5"
 
 ---
-**Writeup / README**
 
 I used vanilla python to calculate summary statistics of the traffic signs data set:
 
@@ -37,23 +36,24 @@ I used vanilla python to calculate summary statistics of the traffic signs data 
 
 Here is an exploratory visualization of all three data sets (training ,validation & test) in histogram form. It is a bar chart showing how the data is distrbuted. It is noted that the distribution for all three sets is very similar to one another so data augmentation to change the data distribution is not really required to obtain a high accuracy for the validation set and test set. 
 
-[image1]
+<img src="https://github.com/AbdulTheProgrammer/CarND-Traffic-Sign-Classifier-Project/blob/master/extra_signs/data_explore.png">
 
-###Design and Test a Model Architecture
 
-**Data Preprocessing**
+# Design and Test a Model Architecture
+
+## Data Preprocessing
 
 
 Histogram equalization was conducted to increase the global and local contrast values as it is noted that there was a wide variety of images in the training set of different brightness levels. Ultimately, this allowed the ConvNet to better extract key features from the data set regardless of the brightness/contrast ratio of the image. 
 
 Here is an example of a traffic sign image before and after histogram equalization.
-
-[image2]
-
-As a last step, I normalized the image data to ensure it had equal variance and zero mean in order to better condition the optimization problem and to prevent numerical instability during training.The image below shows the effect of this data normalization process.  
+<img src="https://github.com/AbdulTheProgrammer/CarND-Traffic-Sign-Classifier-Project/blob/master/extra_signs/data_hist.png">
 
 
-####2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
+As a last step, I normalized the image data to ensure it had equal variance and zero mean in order to better condition the optimization problem and to prevent numerical instability during training.
+
+
+## ConvNet Architecture
 
 My final model consisted of the following layers:
 
@@ -75,19 +75,18 @@ My final model consisted of the following layers:
 | Softmax				|         									|
  
 
-
-####3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
-
-To train the model, I used a modified LeNet Archtecture, which I developed after some reaserach and empirical testing. 
-
-####4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
+**Results**
 
 My final model results were:
 * training set accuracy of 100%
 * validation set accuracy of 98.5%
 * test set accuracy of 96.6%
 
+**The Starting Point**
+
 The first architecture that was used was the LeNet ConvNet, which was a great starting point for this problem as it works relatively well for machine learning problems with smaller data sets like this one. However, the LeNet architecture was designed to work designed originally to work best with small-scale OCR problems with a small number of classes (10). Hence a series of modifications had to be made to adjust the network to accurately predict and classify RGB images of traffic signs, which posed as a more complex data set for LeNet. 
+
+**Modifications to LeNet**
 
 The first problem with the architecture was that in order to be able to effectively  classify the RGB images to 43 distinct classes, the number of neurons or weights + biases had to increases to capture the more complex data. In order to accomplish this I simply multiplied all neurons at each layer by a factor of 3 (empirically determined), which produced slightly higher validation set accuracies. 
 
@@ -95,13 +94,15 @@ The next problem was that no preprocessing on the image data was implemented for
   
 Another issue that was noticed initially was that after these changes, the data was being overfit to the training set and the validation set accuracy seemed to be saturated at around 90%. In order to fix this issue, I first attempted to apply L2 regularization to the loss function with different values for beta along with more aggressive maxpooling operations after every activation function. However, after some experimentation, I discovered that dropout operations after every layer was more effective in preventing overfitting. The probablity of dropout applied during the training phase was set at 0.5 for each layer and during evaluation, the probablity was set to 1.0 to allow for the use of all neurons and maximize the classifying power of the neural network. Dropout forces the neural network to learn more features as there is probablity that neurons associated with any given feature maybe deactivated at any given layer.  
 
-After applying dropout, I noticed that it took much longer to train the neural network and the initially validation accuracies would be a bit more chaotic. In order to remedy this I set a really high number for the EPOCHs and eventually settled on a value of 60 as improvements to the network after this point were very minimal or nonexistent.
+After applying dropout, I noticed that it took much longer to train the neural network and the initially validation accuracies would be a bit more chaotic. In order to remedy this I set a really high number for the EPOCHs and eventually settled on a value of 60 as improvements to the network after this point were very minimal or nonexistent. Occassionally, my neural network would produce validation accuracies of over 99%. This would be a sporadic occurance but regardless the network would always settle back at around 98% validation accuracy after the remaining EPOCHs. Stopping the training process at these spordic rises also produces lower test set accuracies. All in all, I believe that this occurance indicates that my model could be further optimized.  
+
+As for the other hyper parameters, I left them practically unchanged from the original LeNet architecture (i.e. learning rate, batch size) and continued to use the AdamOptimizer for weight updates. The AdamOptimizer proved to be better than the GradientDescentOptimizer as it uses a more adaptive learning approach by factoring in an average of the previous gradients, immediate previous gradient along with the current gradient during the every weight update step.
 
 The two convolutional layers are very important to the networks learning ability as the lower layers have neurons that are more recipetive to local features of the data set while the higher convolutional layer uses more filters to produce higher dimensionalty data, which is useful for the final fully connected layers. A possible improvement to this network would be to change its archetecture from a strictly feed forward network to one that uses data from both the higher and lower convolutional layers for the fullly connected classifer layers. However, this would need more hyper parameter tuning to identify the size of each layer along with the number of additional layers.
 
 All in all, I believe my network is a good choice for this classification problem as it produces accuracies of over 95% for training, validation and test sets.   
 
-***Testing with Random Web Images*** 
+## Validating with Random Web Images 
 
 
 Here are five German traffic signs that I found on the web:
@@ -116,6 +117,8 @@ Here are five German traffic signs that I found on the web:
 Generally these web images found using the Google search engine should not be too much of a problem for the neural network as they are similar to images in the training set. The stop sign may prove slightly challenging as the network was not trained on sheared/rotated/transformed image data. 
 
 The following softmax probablities were output from the ConvNet: 
+
+**Softmax Results** 
 
 TopKV2(values=array([[  9.99821126e-01,   1.78703878e-04,   1.45523117e-07,
           7.37584926e-08,   5.54541124e-08],
@@ -132,6 +135,8 @@ TopKV2(values=array([[  9.99821126e-01,   1.78703878e-04,   1.45523117e-07,
        [22, 17,  0, 25, 31],
        [ 1, 14,  5, 35,  0]], dtype=int32))
 
+**Web Image Predication Accuracy** 
+
 | Image			        |     Prediction(rounded to 1 decimal place)	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | Stop Sign      		| 100.0   									| 
@@ -140,5 +145,5 @@ TopKV2(values=array([[  9.99821126e-01,   1.78703878e-04,   1.45523117e-07,
 | No Passing Sign	      		| 100.0				 				|
 | Roadwork Sign			| 100.0      							|
 
-It is noted that the network seems very sure of each of its predications, which is understandable due to the image web data's similarity to the training/validation set as the largest softmax probablity for each image was >99%, which is the same at the accuracy for the train set and similar to the 98.5% accuracy for the validation set.
+It is noted that each of my network's predication for the 5 web images is correct. My network also seems very sure of each of its predications, which is understandable due to the web image data's similarity to the training/validation set. This is evident as the largest softmax probablity for each image was >99%. This accuracy is the same as the accuracy for the training set and similar to the 98.5% accuracy for the validation set achieved during the training operation.
 
